@@ -10,9 +10,11 @@ def transcribe_with_whisper(audio_file: str) -> str:
         Returns:
             str: Transcribed text.
     """
-    
+    print("\033[92mHere before laoding model\033[0m")
     model = whisper.load_model("tiny")
     result = model.transcribe(audio_file, task="transcribe")
+
+    print("\033[92mAfter loading model\033[0m")
 
     transcribed_text = result.get("text")
 

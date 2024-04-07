@@ -4,8 +4,6 @@ from werkzeug.utils import secure_filename
 import time
 import uuid
 
-
-import filetype
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
@@ -57,6 +55,8 @@ def transcribe():
         os.remove(unique_filename)
         return jsonify({"error": "Only WAV files are supported"}), 400
 
+    print(f"\033[92m{filename}\033[0m")
+
     # Call Celery task asynchronously
     result = transcribe_audio.delay(contents)
 
@@ -70,23 +70,25 @@ def transcribe():
 def transcribe_audio(contents):
     # Transcribe the audio
     try:
+        print("\033[92mBefore fine open\033[0m")
         # Create a temporary file to save the audio data
         with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temp_audio:
             temp_path = temp_audio.name
             temp_audio.write(contents)
 
+            print("\033[92mHere before laoding model\033[0m")
             transcribe_start_time = time.time()
 
             # Transcribe the audio
             transcription = transcribe_with_whisper(temp_path)
             
             transcribe_end_time = time.time()
-
-            print(f"\033[92mTranscribed `{transcription}` in {transcribe_end_time - transcribe_start_time}s\033[0m")
+            print(f"\033[92mTranscripted text: {transcription}\033[0m")
 
             return transcription, transcribe_end_time - transcribe_start_time
 
     except Exception as e:
+        print(f"\033[92mError: {e}\033[0m")
         return str(e)
     
     finally:
@@ -123,8 +125,3 @@ def get_transcription(task_id):
             "task_id": task.id,
             "status": task.status
         })
-
-if __name__ == "__main__":
-    is_debug = os.environ.get("DEBUG") == "true"
-    
-    app.run(debug=is_debug, host='0.0.0.0', port=5000)

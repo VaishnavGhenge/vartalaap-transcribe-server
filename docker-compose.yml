@@ -1,0 +1,21 @@
+version: '3'
+
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    depends_on:
+      - redis
+      - worker
+    env_file:
+      - .env
+
+  redis:
+    image: "redis:latest"
+
+  worker:
+    build: .
+    command: celery -A index.celery_app worker --loglevel=info
+    depends_on:
+      - redis

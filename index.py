@@ -70,13 +70,12 @@ def transcribe():
 def transcribe_audio(contents):
     # Transcribe the audio
     try:
-        print("\033[92mBefore fine open\033[0m")
         # Create a temporary file to save the audio data
         with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temp_audio:
             temp_path = temp_audio.name
             temp_audio.write(contents)
 
-            print("\033[92mHere before laoding model\033[0m")
+            print(f"\033[92mFile temporary path: {temp_path}\033[0m")
             transcribe_start_time = time.time()
 
             # Transcribe the audio
@@ -91,10 +90,10 @@ def transcribe_audio(contents):
         print(f"\033[92mError: {e}\033[0m")
         return str(e)
     
-    finally:
-        # Cleanup temporary file
-        if os.path.exists(temp_path):
-            os.remove(temp_path)
+    # finally:
+    #     # Cleanup temporary file
+    #     if os.path.exists(temp_path):
+    #         os.remove(temp_path)
 
 
 @app.route("/check-task-status/<task_id>", methods=["GET"])

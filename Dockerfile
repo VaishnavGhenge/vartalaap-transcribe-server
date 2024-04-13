@@ -5,8 +5,8 @@ FROM python:3.9
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-# Install ffmpeg
-RUN apt-get update && apt-get install -y ffmpeg
+# Install ffmpeg and other necessary dependencies
+RUN apt-get update && apt-get install -y ffmpeg libsm6 libxext6
 
 # Set the working directory in the container
 WORKDIR /app

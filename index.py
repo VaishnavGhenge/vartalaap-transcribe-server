@@ -66,6 +66,8 @@ def transcribe_bytes():
 
         resample_data = librosa.resample(data, orig_sr=sample_rate, target_sr=16000)
 
+        print("calling transcribe")
+
         # Send audio chunks to the Celery task for transcription
         task = transcribe_audio.delay(resample_data)
 

@@ -40,7 +40,10 @@ def transcribe_audio(audio_bytes):
 
         # print("\033[92mTranscripted text:", transcription, "\033[0m")
 
-        return transcription, transcribe_end_time - transcribe_start_time
+        return {
+            "text": transcription, 
+            "processed_in": transcribe_end_time - transcribe_start_time
+        }
 
     except Exception as e:
         print("\033[92mError:", e, "\033[0m")

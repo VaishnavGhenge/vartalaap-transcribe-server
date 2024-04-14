@@ -69,7 +69,7 @@ def transcribe_bytes():
 
         print("calling transcribe")
 
-        return transcribe_with_whisper(resample_data).get("text")
+        return transcribe_with_whisper(resample_data)
 
         # Send audio chunks to the Celery task for transcription
         task = transcribe_audio.delay(resample_data)

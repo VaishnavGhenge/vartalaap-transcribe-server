@@ -56,6 +56,8 @@ def transcribe_bytes():
         if audio_file.filename == '':
             return jsonify({"error": "No selected file"}), 400
         
+        print(audio_file)
+
         bt = audio_file.read()
 
         memory_file = io.BytesIO(bt)

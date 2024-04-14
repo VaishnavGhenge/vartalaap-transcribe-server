@@ -38,7 +38,7 @@ def transcribe_audio(audio_bytes):
         # Transcription end time
         transcribe_end_time = time.time()
 
-        print("\033[92mTranscripted text:", transcription, "\033[0m")
+        # print("\033[92mTranscripted text:", transcription, "\033[0m")
 
         return transcription, transcribe_end_time - transcribe_start_time
 
@@ -65,12 +65,12 @@ def transcribe_bytes():
 
         audio_bytes = audio_file.read()
 
-        print("\033[92mStarted working\033[0m")
+        # print("\033[92mStarted working\033[0m")
 
         # Send audio chunks to the Celery task for transcription
         task = transcribe_audio.delay(audio_bytes)
 
-        print("\033[92mEnded working\033[0m")
+        # print("\033[92mEnded working\033[0m")
 
         return jsonify({
             "task_id": task.id,

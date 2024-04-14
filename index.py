@@ -65,8 +65,12 @@ def transcribe_bytes():
 
         audio_bytes = audio_file.read()
 
+        print("\033[92mStarted working\033[0m")
+
         # Send audio chunks to the Celery task for transcription
         task = transcribe_audio.delay(audio_bytes)
+
+        print("\033[92mEnded working\033[0m")
 
         return jsonify({
             "task_id": task.id,

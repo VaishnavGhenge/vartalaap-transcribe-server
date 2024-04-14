@@ -12,7 +12,7 @@ def transcribe_with_whisper(resampled_data) -> str:
             str: Transcribed text.
     """
 
-    model = whisper.load_model("base")
+    model = whisper.load_model("tiny")
 
     result = model.transcribe(resampled_data, task="transcribe", language="en")
 

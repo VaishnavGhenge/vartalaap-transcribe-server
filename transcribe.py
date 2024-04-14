@@ -1,4 +1,5 @@
 import whisper
+import os
 
 def transcribe_with_whisper(audio_file: str) -> str:
     """

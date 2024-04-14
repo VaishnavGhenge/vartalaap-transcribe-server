@@ -1,9 +1,6 @@
-import os
-import tempfile
-from werkzeug.utils import secure_filename
 import time
-import uuid
 import io
+import librosa
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
@@ -24,17 +21,14 @@ celery_app = make_celery(app)
 
 
 @celery_app.task
-def transcribe_audio(audio_chunks):
+def transcribe_audio(resampled_data):
     try:
+        # Transcription start time
         transcribe_start_time = time.time()
 
-        # Concatenate audio chunks into a single bytes object
-        audio_data = b''.join(audio_chunks)
+        transcription = transcribe_with_whisper(resampled_data)
 
-        # You would replace this function with your actual transcription logic
-        # transcribe_with_whisper is just a placeholder here
-        transcription = transcribe_with_whisper(audio_data)
-
+        # Transcription end time
         transcribe_end_time = time.time()
 
         print("\033[92mTranscripted text:", transcription, "\033[0m")
@@ -48,16 +42,30 @@ def transcribe_audio(audio_chunks):
 @app.route("/transcribe-bytes", methods=["POST"])
 def transcribe_bytes():
     try:
-        # Read the audio chunks from the request
-        audio_chunks = []
-        while True:
-            chunk = request.stream.read(1024)  # Adjust the chunk size as needed
-            if not chunk:
-                break
-            audio_chunks.append(chunk)
+        # Check if audio file is present in the request
+        if 'audio_file' not in request.files:
+            return jsonify({"error": "No file part"}), 400
+
+        audio_file = request.files.get('audio_file')
+
+        # Check if audio_file is sent in files
+        if not audio_file:
+            return jsonify({"error": "`audio_file` is missing in request.files"}), 400
+
+        # Check if the file is present
+        if audio_file.filename == '':
+            return jsonify({"error": "No selected file"}), 400
+        
+        bt = audio_file.read()
+
+        memory_file = io.BytesIO(bt)
+
+        data, sample_rate = librosa.load(memory_file)
+
+        resample_data = librosa.resample(data, orig_sr=sample_rate, target_sr=16000)
 
         # Send audio chunks to the Celery task for transcription
-        task = transcribe_audio.delay(audio_chunks)
+        task = transcribe_audio.delay(resample_data)
 
         return jsonify({
             "task_id": task.id,

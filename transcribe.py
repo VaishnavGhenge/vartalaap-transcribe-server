@@ -1,7 +1,7 @@
 import whisper
 import os
 
-def transcribe_with_whisper(audio_file: str) -> str:
+def transcribe_with_whisper(resampled_data) -> str:
     """
         Transcribes audio using Whisper model.
         
@@ -12,7 +12,7 @@ def transcribe_with_whisper(audio_file: str) -> str:
             str: Transcribed text.
     """
     model = whisper.load_model("tiny")
-    result = model.transcribe(audio_file, task="transcribe", fp16=False)
+    result = model.transcribe(resampled_data, task="transcribe")
 
     transcribed_text = result.get("text")
 

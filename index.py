@@ -21,70 +21,46 @@ app.config.update(
 )
 celery_app = make_celery(app)
 
-@app.route("/transcribe", methods=["POST"])
-def transcribe():
-    # Check if audio file is present in the request
-    if 'audio_file' not in request.files:
-        return jsonify({"error": "No file part"}), 400
-    
-    audio_file = request.files.get('audio_file')
 
-    # Check if audio_file is sent in files
-    if not audio_file:
-        return jsonify({"error": "`audio_file` is missing in request.files"}), 400
+@app.route("/transcribe-bytes", methods=["POST"])
+def transcribe_bytes():
+    # Read the audio file from request data
+    audio_data = request.data
 
-    # Check if the file is present
-    if audio_file.filename == '':
-        return jsonify({"error": "No selected file"}), 400
+    # Transcribe the audio
+    try:
+        # Create a BytesIO object to work with bytes data
+        audio = io.BytesIO(audio_data)
 
-    # Save the file with a unique name
-    filename = secure_filename(audio_file.filename)
-    unique_filename = os.path.join("uploads", str(uuid.uuid4()) + '_' + filename)
-    # audio_file.save(unique_filename)
-    
-    # Read the contents of the audio file
-    contents = audio_file.read()
+        print(f"\033[92mBytesIO object: {audio}\033[0m")
 
-    max_file_size = 500 * 1024 * 1024
-    if len(contents) > max_file_size:
-        return jsonify({"error": "File is too large"}), 400
+        task = transcribe_audio.delay(audio)
 
-    # Check if the file extension suggests it's a WAV file
-    if not filename.lower().endswith('.wav'):
-        # Delete the file if it's not a WAV file
-        os.remove(unique_filename)
-        return jsonify({"error": "Only WAV files are supported"}), 400
+        return jsonify({
+            "task_id": task.id,
+            "status": "pending"
+        })
 
-    print(f"\033[92m{filename}\033[0m")
-
-    # Call Celery task asynchronously
-    result = transcribe_audio.delay(contents)
-
-    return jsonify({
-        "task_id": result.id,
-        "status": "pending"
-    })
+    except Exception as e:
+        print(f"\033[92mError: {e}\033[0m")
+        return jsonify({"error": str(e)})
 
 
 @celery_app.task
 def transcribe_audio(contents):
     # Transcribe the audio
     try:
-        # Create a temporary file to save the audio data
-        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temp_audio:
-            temp_path = temp_audio.name
-            temp_audio.write(contents)
+        print(f"\033[92mBytesIO object: {audio}\033[0m")
+        transcribe_start_time = time.time()
 
-            print(f"\033[92mFile temporary path: {temp_path}\033[0m")
-            transcribe_start_time = time.time()
+        # Transcribe the audio
+        transcription = transcribe_with_whisper(contents)
 
-            # Transcribe the audio
-            transcription = transcribe_with_whisper(temp_path)
-            
-            transcribe_end_time = time.time()
-            print(f"\033[92mTranscripted text: {transcription}\033[0m")
+        transcribe_end_time = time.time()
 
-            return transcription, transcribe_end_time - transcribe_start_time
+        print(f"\033[92mTranscripted text: {transcription}\033[0m")
+
+        return transcription, transcribe_end_time - transcribe_start_time
 
     except Exception as e:
         print(f"\033[92mError: {e}\033[0m")

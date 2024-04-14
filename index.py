@@ -1,6 +1,7 @@
 import time
 import io
 import librosa
+import pickle
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
@@ -23,9 +24,9 @@ celery_app = make_celery(app)
 @celery_app.task
 def transcribe_audio(resampled_data_list):
     try:
-        resample_data_bytes = resampled_data_list.tobytes()
+        resample_data_bytes = pickle.dumps(resampled_data_list)
         print("started working on transcrbing", resample_data_bytes)
-        
+
         # Transcription start time
         transcribe_start_time = time.time()
 

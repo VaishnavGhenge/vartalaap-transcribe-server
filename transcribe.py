@@ -11,7 +11,7 @@ def transcribe_with_whisper(resampled_data) -> str:
         Returns:
             str: Transcribed text.
     """
-    pritn("initializing model")
+    print("initializing model")
 
     model = whisper.load_model("tiny")
     result = model.transcribe(resampled_data, task="transcribe")

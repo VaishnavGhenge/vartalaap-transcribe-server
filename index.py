@@ -23,7 +23,7 @@ celery_app = make_celery(app)
 @celery_app.task
 def transcribe_audio(resampled_data):
     try:
-        print("started working on transcrbing ", resampled_data)
+        print("started working on transcrbing", resampled_data)
         # Transcription start time
         transcribe_start_time = time.time()
 
@@ -68,6 +68,8 @@ def transcribe_bytes():
         resample_data = librosa.resample(data, orig_sr=sample_rate, target_sr=16000)
 
         print("calling transcribe")
+
+        return transcribe_with_whisper(resample_data).get("text")
 
         # Send audio chunks to the Celery task for transcription
         task = transcribe_audio.delay(resample_data)

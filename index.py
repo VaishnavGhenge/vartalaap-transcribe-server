@@ -23,54 +23,50 @@ app.config.update(
 celery_app = make_celery(app)
 
 
-@app.route("/transcribe-bytes", methods=["POST"])
-def transcribe_bytes():
-    # Read the audio file from request data
-    audio_data = request.data
-
-    # Transcribe the audio
-    try:
-        # Create a BytesIO object to work with bytes data
-        audio = io.BytesIO(audio_data)
-
-        print(f"\033[92mBytesIO object: {audio}\033[0m")
-
-        task = transcribe_audio.delay(audio)
-
-        return jsonify({
-            "task_id": task.id,
-            "status": "pending"
-        })
-
-    except Exception as e:
-        print(f"\033[92mError: {e}\033[0m")
-        return jsonify({"error": str(e)})
-
-
 @celery_app.task
-def transcribe_audio(contents):
-    # Transcribe the audio
+def transcribe_audio(audio_chunks):
     try:
-        print(f"\033[92mBytesIO object: {audio}\033[0m")
         transcribe_start_time = time.time()
 
-        # Transcribe the audio
-        transcription = transcribe_with_whisper(contents)
+        # Concatenate audio chunks into a single bytes object
+        audio_data = b''.join(audio_chunks)
+
+        # You would replace this function with your actual transcription logic
+        # transcribe_with_whisper is just a placeholder here
+        transcription = transcribe_with_whisper(audio_data)
 
         transcribe_end_time = time.time()
 
-        print(f"\033[92mTranscripted text: {transcription}\033[0m")
+        print("\033[92mTranscripted text:", transcription, "\033[0m")
 
         return transcription, transcribe_end_time - transcribe_start_time
 
     except Exception as e:
-        print(f"\033[92mError: {e}\033[0m")
+        print("\033[92mError:", e, "\033[0m")
         return str(e)
-    
-    # finally:
-    #     # Cleanup temporary file
-    #     if os.path.exists(temp_path):
-    #         os.remove(temp_path)
+
+@app.route("/transcribe-bytes", methods=["POST"])
+def transcribe_bytes():
+    try:
+        # Read the audio chunks from the request
+        audio_chunks = []
+        while True:
+            chunk = request.stream.read(1024)  # Adjust the chunk size as needed
+            if not chunk:
+                break
+            audio_chunks.append(chunk)
+
+        # Send audio chunks to the Celery task for transcription
+        task = transcribe_audio.delay(audio_chunks)
+
+        return jsonify({
+            "task_id": task.id,
+            "status": "PENDING"
+        })
+
+    except Exception as e:
+        print("\033[92mError:", e, "\033[0m")
+        return jsonify({"error": str(e)})
 
 
 @app.route("/check-task-status/<task_id>", methods=["GET"])

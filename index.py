@@ -23,6 +23,7 @@ celery_app = make_celery(app)
 @celery_app.task
 def transcribe_audio(resampled_data):
     try:
+        print("started working on transcrbing ", resampled_data)
         # Transcription start time
         transcribe_start_time = time.time()
 

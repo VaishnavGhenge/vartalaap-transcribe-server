@@ -10,11 +10,11 @@ def transcribe_with_whisper(audio_file: str) -> str:
         Returns:
             str: Transcribed text.
     """
-    print("\033[92mHere before laoding model\033[0m")
-    model = whisper.load_model("tiny")
-    result = model.transcribe(audio_file, task="transcribe")
+    if not os.path.exists(audio_file):
+        return f"File '{audio_file}' does not exist."
 
-    print("\033[92mAfter loading model\033[0m")
+    model = whisper.load_model("tiny")
+    result = model.transcribe(audio_file, task="transcribe", fp16=False)
 
     transcribed_text = result.get("text")
 

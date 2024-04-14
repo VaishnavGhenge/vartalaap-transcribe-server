@@ -22,15 +22,18 @@ celery_app = make_celery(app)
 
 
 @celery_app.task
-def transcribe_audio(resampled_data_list):
+def transcribe_audio(audio_bytes):
     try:
-        resample_data_bytes = pickle.dumps(resampled_data_list)
-        print("started working on transcrbing", resample_data_bytes)
+        memory_file = io.BytesIO(audio_bytes)
+
+        data, sample_rate = librosa.load(memory_file)
+
+        resample_data = librosa.resample(data, orig_sr=sample_rate, target_sr=16000)
 
         # Transcription start time
         transcribe_start_time = time.time()
 
-        transcription = transcribe_with_whisper(resample_data_bytes)
+        transcription = transcribe_with_whisper(resample_data)
 
         # Transcription end time
         transcribe_end_time = time.time()
@@ -59,23 +62,11 @@ def transcribe_bytes():
         # Check if the file is present
         if audio_file.filename == '':
             return jsonify({"error": "No selected file"}), 400
-        
-        print(audio_file)
 
-        bt = audio_file.read()
-
-        memory_file = io.BytesIO(bt)
-
-        data, sample_rate = librosa.load(memory_file)
-
-        resample_data = librosa.resample(data, orig_sr=sample_rate, target_sr=16000)
-
-        print("calling transcribe")
-    
-        resample_data_list = resample_data.tolist()
+        audio_bytes = audio_file.read()
 
         # Send audio chunks to the Celery task for transcription
-        task = transcribe_audio.delay(resample_data_list)
+        task = transcribe_audio.delay(audio_bytes)
 
         return jsonify({
             "task_id": task.id,

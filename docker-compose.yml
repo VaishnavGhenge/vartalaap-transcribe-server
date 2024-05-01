@@ -19,6 +19,6 @@ services:
 
   worker:
     build: .
-    command: celery -A index.celery_app worker --loglevel=debug
+    command: "celery -A index.celery_app worker --loglevel=debug"
     depends_on:
       - redis

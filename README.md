@@ -5,11 +5,11 @@
 #### Start server
 
 ```commandline
-gunicorn -w 4 -b 0.0.0.0:5000 index:app -t 90 --reload
+gunicorn -w 2 -b 0.0.0.0:5000 index:app -t 90 --reload
 ```
 - `-w` - Background workers
 - `-b` - Bind host@port
-- `index:app` - Since our main file name is other than app so, `file_name:app`
+- `index:app` - Since our main file name is other than app.py so, `file_name:app`
 - `-t` - Timeout in secs
 - `--reload` - Flag to indicate gunicorn to listen for code changes and restart server
 _____________________________________________________

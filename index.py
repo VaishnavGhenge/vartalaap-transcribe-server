@@ -52,7 +52,7 @@ def transcribe_bytes():
 
     return jsonify({
         "task_id": task.id,
-        "status": "PENDING"
+        "status": task.status
     })
 
 

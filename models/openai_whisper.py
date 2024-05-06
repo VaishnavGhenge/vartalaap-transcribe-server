@@ -1,8 +1,9 @@
-from typing import Dict, Optional, Union
-import numpy as np
 import torch
 import whisper
+import numpy as np
+from typing import Dict, Optional, Union
 from whisper import Whisper
+
 
 class WhisperModel:
     def __init__(self, model_size="tiny", language="en", beam=5, task="transcribe") -> None:
@@ -11,18 +12,23 @@ class WhisperModel:
         self.beam: int = beam
         self.task: str = task
 
-        self.model: Whisper = whisper.load_model(self.model_size, language=self.language, beam=self.beam, task=self.task)
+        self.model: Whisper = whisper.load_model(
+            self.model_size,
+            language=self.language,
+            beam=self.beam,
+            task=self.task,
+        )
 
-    def transcribe(
+    def get_transcribed_text(
             self,
-            audio_data: Union[str, np.ndarray, torch.Tensor], 
+            audio_data: Union[str, np.ndarray, torch.Tensor],
             no_speech_threshold: Optional[float] = 0.6
-        ) -> str:
+    ) -> str:
         """
             Transcribes audio using Whisper model.
 
             Parameters:
-                audio: Union[str, np.ndarray, torch.Tensor]
+                audio_data: Union[str, np.ndarray, torch.Tensor]
                     The path to the audio file to open, or the audio waveform
 
                 no_speech_threshold: float

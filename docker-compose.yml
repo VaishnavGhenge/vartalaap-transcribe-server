@@ -10,7 +10,7 @@ services:
       - "5000:5000"
     depends_on:
       - redis
-#      - worker
+#      - workergunicorn -w 4 -b 0.0.0.0:5000 index:app -t 90 --reload
     env_file:
       - .env
 

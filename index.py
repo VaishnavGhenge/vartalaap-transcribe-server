@@ -2,23 +2,19 @@ import os
 
 from flask import Flask
 from flask_cors import CORS
-
-import io
-import time
-import librosa
-from transcription.whisper import WhisperModel
 from flask import jsonify, request
 
 from worker.config import make_celery
+from worker.utils import transcribe
 
 app = Flask(__name__)
 
 CORS(app)
 
-redis_url = (f"redis://:"
-             f"{os.environ.get('REDIS_PASSWORD')}@{os.environ.get('REDIS_HOST')}:{os.environ.get('REDIS_PORT')}/0")
-
-print(f"\033[92m{redis_url}\033[0m")
+redis_url = "redis://:@localhost:6379/0"
+if os.environ.get("PRODUCTION") == "true":
+    redis_url = (f"redis://:"
+                 f"{os.environ.get('REDIS_PASSWORD')}@{os.environ.get('REDIS_HOST')}:{os.environ.get('REDIS_PORT')}/0")
 
 app.config.update(
     CELERY_BROKER_URL=redis_url,
@@ -30,26 +26,7 @@ celery_app = make_celery(app)
 
 @celery_app.task
 def transcribe_audio(audio_bytes):
-    memory_file = io.BytesIO(audio_bytes)
-
-    data, sample_rate = librosa.load(memory_file)
-
-    resample_data = librosa.resample(data, orig_sr=sample_rate, target_sr=32000)
-
-    # Transcription start time
-    transcribe_start_time = time.time()
-
-    whisper = WhisperModel()
-
-    transcription = whisper.transcribe(resample_data)
-
-    # Transcription end time
-    transcribe_end_time = time.time()
-
-    return {
-        "text": transcription,
-        "processed_in": transcribe_end_time - transcribe_start_time
-    }
+    return transcribe(audio_bytes)
 
 
 @app.route("/transcribe-bytes", methods=["POST"])
@@ -70,7 +47,7 @@ def transcribe_bytes():
 
     audio_bytes = audio_file.read()
 
-    # Send audio chunks to the Celery task for transcription
+    # Send audio chunks to the Celery task for models
     task = transcribe_audio.delay(audio_bytes)
 
     return jsonify({
@@ -96,19 +73,18 @@ def get_transcription(task_id):
     # Check the status of the Celery task with the given task ID
     task = transcribe_audio.AsyncResult(task_id)
 
-    # If task is successful, return the transcription
+    # If task is successful, return the models
     if task.status == 'SUCCESS':
         return jsonify({
             "task_id": task.id,
             "status": task.status,
-            "transcription": task.result
+            "models": task.result
         })
     else:
         return jsonify({
             "task_id": task.id,
             "status": task.status
         })
-
 
 
 if __name__ == "__main__":

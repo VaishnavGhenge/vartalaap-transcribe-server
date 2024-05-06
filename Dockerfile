@@ -11,12 +11,12 @@ ENV DEBIAN_FRONTEND=noninteractive \
 WORKDIR /app
 
 # Install system dependencies
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
+RUN apt update && \
+    apt install -y --no-install-recommends \
     python3.9 \
     python3-pip \
     ffmpeg \
-    && apt-get clean \
+    && apt clean \
     && rm -rf /var/lib/apt/lists/*
 
 # Upgrade pip

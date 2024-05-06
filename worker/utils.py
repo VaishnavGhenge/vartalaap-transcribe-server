@@ -6,9 +6,6 @@ import librosa
 import numpy as np
 import torch
 
-from models.openai_whisper import WhisperModel
-from models.faster__whisper import FasterWhisper
-
 
 def get_resampled_audio(audio_bytes, target_sampling_rate: int = 16000) -> np.ndarray:
     memory_file = io.BytesIO(audio_bytes)
@@ -39,12 +36,16 @@ def transcribe(audio, model: str = "faster-whisper"):
 
 
 def whisper_transcribe(audio: Union[str, np.ndarray, torch.Tensor]) -> str:
+    from models.openai_whisper import WhisperModel
+
     whisper = WhisperModel()
 
     return whisper.get_transcribed_text(audio)
 
 
 def faster_whisper_transcribe(audio: Union[str, np.ndarray, torch.Tensor]) -> str:
+    from models.faster__whisper import FasterWhisper
+    
     faster_whisper = FasterWhisper()
 
     return faster_whisper.transcribe(audio)

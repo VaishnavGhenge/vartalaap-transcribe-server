@@ -7,6 +7,9 @@ from flask import jsonify, request
 from worker.config import make_celery
 from worker.utils import transcribe
 
+from marshmallow import Schema, fields, ValidationError, validate
+from utils import LANGUAGE_CODES
+
 app = Flask(__name__)
 
 CORS(app)
@@ -29,6 +32,12 @@ def transcribe_audio(audio_bytes):
     return transcribe(audio_bytes)
 
 
+class TranscribeSchema(Schema):
+    model = fields.String(validate=validate.OneOf(["whisper", "faster-whisper"]), default="whisper")
+    model_size = fields.String(validate=validate.OneOf(["tiny", "base", "small"]))
+    language = fields.String(validate=validate.OneOf(LANGUAGE_CODES))
+
+
 @app.route("/transcribe-bytes", methods=["POST"])
 def transcribe_bytes():
     # Check if audio file is present in the request
@@ -44,16 +53,29 @@ def transcribe_bytes():
     # Check if the file is present
     if audio_file.filename == '':
         return jsonify({"error": "No selected file"}), 400
+    
+    request_data = request.json
 
-    audio_bytes = audio_file.read()
+    schema = TranscribeSchema()
 
-    # Send audio chunks to the Celery task for models
-    task = transcribe_audio.delay(audio_bytes)
+    validated_data = None
+    try:
+        validated_data = schema.load(request_data)
+    except ValidationError as err:
+        return jsonify({"error": err.messages})
+    
+    if validated_data:
+        audio_bytes = audio_file.read()
 
-    return jsonify({
-        "task_id": task.id,
-        "status": task.status
-    })
+        # Send audio chunks to the Celery task for models
+        task = transcribe_audio.delay(audio_bytes)
+
+        return jsonify({
+            "task_id": task.id,
+            "status": task.status
+        })
+    else:
+        return jsonify({"error": "Invalid request data"}), 400
 
 
 @app.route("/check-task-status/<task_id>", methods=["GET"])

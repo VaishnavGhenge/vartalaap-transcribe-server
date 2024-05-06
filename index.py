@@ -1,4 +1,5 @@
 import os
+import json
 
 from flask import Flask
 from flask_cors import CORS
@@ -34,8 +35,8 @@ def transcribe_audio(audio_bytes):
 
 class TranscribeSchema(Schema):
     model = fields.String(validate=validate.OneOf(["whisper", "faster-whisper"]), default="whisper")
-    model_size = fields.String(validate=validate.OneOf(["tiny", "base", "small"]))
-    language = fields.String(validate=validate.OneOf(LANGUAGE_CODES))
+    model_size = fields.String(validate=validate.OneOf(["tiny", "base", "small"]), default="tiny")
+    language = fields.String(validate=validate.OneOf(LANGUAGE_CODES), default="en")
 
 
 @app.route("/transcribe-bytes", methods=["POST"])
@@ -54,15 +55,17 @@ def transcribe_bytes():
     if audio_file.filename == '':
         return jsonify({"error": "No selected file"}), 400
     
-    request_data = request.json
+    request_data = json.loads(request.form['config'])
 
     schema = TranscribeSchema()
 
     validated_data = None
     try:
         validated_data = schema.load(request_data)
+
+        print(f"\033[92mvalidated data: {validated_data}\033[0m]")
     except ValidationError as err:
-        return jsonify({"error": err.messages})
+        return jsonify({"errors": err.messages})
     
     if validated_data:
         audio_bytes = audio_file.read()

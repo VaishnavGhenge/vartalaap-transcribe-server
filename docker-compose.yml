@@ -5,12 +5,12 @@ services:
     build: .
     volumes:
       - .:/app
-    command: "gunicorn -w 4 -b 0.0.0.0:5000 index:app -t 90 --reload"
+    command: "gunicorn -w 2 -b 0.0.0.0:5000 index:app -t 90 --reload"
     ports:
       - "5000:5000"
     depends_on:
       - redis
-#      - workergunicorn -w 4 -b 0.0.0.0:5000 index:app -t 90 --reload
+#      - worker
     env_file:
       - .env
 
@@ -29,6 +29,8 @@ services:
     command: "celery -A index.celery_app worker --loglevel=debug"
     depends_on:
       - redis
+    env_file:
+      - .env
 
 volumes:
   redis_data:

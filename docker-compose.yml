@@ -26,6 +26,8 @@ services:
 
   worker:
     build: .
+    volumes:
+      - .:/app
     command: "celery -A index.celery_app worker --loglevel=debug"
     depends_on:
       - redis

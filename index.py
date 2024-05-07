@@ -83,7 +83,7 @@ def transcribe_bytes():
         audio_bytes = audio_file.read()
 
         # Send audio chunks to the Celery task for models
-        task = transcribe_audio.delay(audio_bytes)
+        task = transcribe_audio.delay(audio_bytes, validated_data)
 
         return jsonify({
             "task": {

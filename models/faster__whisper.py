@@ -8,14 +8,14 @@ from utils import TranscribeData
 
 
 class FasterWhisper:
-    def __init__(self, config: TranscribeData, beam_size=5, **kwargs):
-        if config["language"] == "auto":
+    def __init__(self, model_size=None, language=None, device=None, compute_type=None, beam_size=5, **kwargs):
+        if language == "auto":
             self.language = None
         else:
-            self.language = config["language"]
+            self.language = language
 
         self.beam_size = beam_size
-        self.model = self.load_model(**config, **kwargs)
+        self.model = self.load_model(model_size=model_size, device=device, compute_type=compute_type, **kwargs)
 
     def load_model(self, model_size=None, device=None, compute_type=None, **kwargs):
         if model_size is None:
@@ -32,7 +32,7 @@ class FasterWhisper:
 
         return WhisperModel(model_size, device=device, compute_type=compute_type, **kwargs)
 
-    def transcribe(self, audio: Union[str, BinaryIO, np.ndarray], init_prompt: str = "", **kwargs) -> str:
+    def get_transcribed_text(self, audio: Union[str, BinaryIO, np.ndarray], init_prompt: str = "", **kwargs) -> str:
         segments, _ = self.model.transcribe(audio, language=self.language, initial_prompt=init_prompt, **kwargs)
 
         logging.warning(segments)

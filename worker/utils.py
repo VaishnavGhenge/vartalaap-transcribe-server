@@ -21,7 +21,7 @@ def get_resampled_audio(audio_bytes, target_sampling_rate: int = 16000) -> np.nd
 
 def get_transcription_with_time(audio: np.ndarray, transcription_func, config: TranscribeData):
     start_time = time.time()
-    transcript_text = transcription_func(audio)
+    transcript_text = transcription_func(audio, config)
     end_time = time.time()
 
     return {
@@ -36,16 +36,16 @@ def transcribe(audio, config: TranscribeData):
     if config["model"] == "whisper":
         return get_transcription_with_time(resampled_audio, whisper_transcribe, config)
 
-    return get_transcription_with_time(resampled_audio, faster_whisper_transcribe)
+    return get_transcription_with_time(resampled_audio, faster_whisper_transcribe, config)
 
 
 def whisper_transcribe(audio: Union[str, np.ndarray, torch.Tensor], config: TranscribeData) -> str:
-    whisper = WhisperModel()
+    whisper = WhisperModel(model_size=config["model_size"], language=config["language"])
 
     return whisper.get_transcribed_text(audio)
 
 
-def faster_whisper_transcribe(audio: Union[str, np.ndarray, torch.Tensor]) -> str:
-    faster_whisper = FasterWhisper()
+def faster_whisper_transcribe(audio: Union[str, np.ndarray, torch.Tensor], config: TranscribeData) -> str:
+    faster_whisper = FasterWhisper(model_size=config["model_size"], language=config["language"], device=config["device"], compute_type=config["compute_type"])
 
-    return faster_whisper.transcribe(audio)
+    return faster_whisper.get_transcribed_text(audio)

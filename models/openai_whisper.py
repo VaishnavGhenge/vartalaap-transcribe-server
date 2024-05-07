@@ -8,9 +8,9 @@ from utils import TranscribeData
 
 
 class WhisperModel:
-    def __init__(self, config: TranscribeData, beam=5, task="transcribe") -> None:
-        self.model_size: str = config["model_size"]
-        self.language: str = config["language"]
+    def __init__(self, model_size: str, language: str, beam=5, task="transcribe") -> None:
+        self.model_size: str = model_size
+        self.language: str = language
         self.beam: int = beam
         self.task: str = task
 

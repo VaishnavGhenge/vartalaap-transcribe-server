@@ -4,11 +4,13 @@ import numpy as np
 from typing import Dict, Optional, Union
 from whisper import Whisper
 
+from utils import TranscribeData
+
 
 class WhisperModel:
-    def __init__(self, model_size="tiny", language="en", beam=5, task="transcribe") -> None:
-        self.model_size: str = model_size
-        self.language: str = language
+    def __init__(self, config: TranscribeData, beam=5, task="transcribe") -> None:
+        self.model_size: str = config["model_size"]
+        self.language: str = config["language"]
         self.beam: int = beam
         self.task: str = task
 

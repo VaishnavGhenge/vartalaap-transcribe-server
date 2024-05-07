@@ -8,6 +8,7 @@ import torch
 
 from models.openai_whisper import WhisperModel
 from models.faster__whisper import FasterWhisper
+from utils import TranscribeData
 
 
 def get_resampled_audio(audio_bytes, target_sampling_rate: int = 16000) -> np.ndarray:
@@ -18,7 +19,7 @@ def get_resampled_audio(audio_bytes, target_sampling_rate: int = 16000) -> np.nd
     return librosa.resample(data, orig_sr=sample_rate, target_sr=target_sampling_rate)
 
 
-def get_transcription_with_time(audio: np.ndarray, transcription_func):
+def get_transcription_with_time(audio: np.ndarray, transcription_func, config: TranscribeData):
     start_time = time.time()
     transcript_text = transcription_func(audio)
     end_time = time.time()
@@ -29,16 +30,16 @@ def get_transcription_with_time(audio: np.ndarray, transcription_func):
     }
 
 
-def transcribe(audio, model: str = "faster-whisper"):
+def transcribe(audio, config: TranscribeData):
     resampled_audio: np.ndarray = get_resampled_audio(audio)
 
-    if model == "whisper":
-        return get_transcription_with_time(resampled_audio, whisper_transcribe)
+    if config["model"] == "whisper":
+        return get_transcription_with_time(resampled_audio, whisper_transcribe, config)
 
     return get_transcription_with_time(resampled_audio, faster_whisper_transcribe)
 
 
-def whisper_transcribe(audio: Union[str, np.ndarray, torch.Tensor]) -> str:
+def whisper_transcribe(audio: Union[str, np.ndarray, torch.Tensor], config: TranscribeData) -> str:
     whisper = WhisperModel()
 
     return whisper.get_transcribed_text(audio)

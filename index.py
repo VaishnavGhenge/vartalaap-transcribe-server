@@ -9,7 +9,16 @@ from worker.config import make_celery
 from worker.utils import transcribe
 
 from marshmallow import Schema, fields, ValidationError, validate
-from utils import LANGUAGE_CODES
+from utils import (
+    LANGUAGE_CODES, 
+    DEFAULT_MODEL, 
+    DEFAULT_MODEL_SIZE, 
+    DEFAULT_TRANSCRIBE_LANGUAGE,
+    DEFAULT_DEVICE,
+    DEFAULT_COMPUTE_TYPE,
+    get_default_transcribe_config,
+    TranscribeData
+)
 
 app = Flask(__name__)
 
@@ -29,15 +38,17 @@ celery_app = make_celery(app)
 
 
 @celery_app.task
-def transcribe_audio(audio_bytes):
-    return transcribe(audio_bytes)
+def transcribe_audio(audio_bytes, config: TranscribeData):
+    return transcribe(audio_bytes, config)
 
 
 class TranscribeSchema(Schema):
     # TODO: explore how default works here
-    model = fields.String(validate=validate.OneOf(["whisper", "faster-whisper"]), default="whisper")
-    model_size = fields.String(validate=validate.OneOf(["tiny", "base", "small"]), default="tiny")
-    language = fields.String(validate=validate.OneOf(LANGUAGE_CODES), default="en")
+    model = fields.String(validate=validate.OneOf(["whisper", "faster-whisper"]), default=DEFAULT_MODEL)
+    model_size = fields.String(validate=validate.OneOf(["tiny", "base", "small"]), default=DEFAULT_MODEL_SIZE)
+    language = fields.String(validate=validate.OneOf(LANGUAGE_CODES), default=DEFAULT_TRANSCRIBE_LANGUAGE)
+    device = fields.String(validate=validate.OneOf(["cpu", "cuda"]), default=DEFAULT_DEVICE)
+    compute_type = fields.String(validate=validate.OneOf(["int8", "float16", "float32"]), default=DEFAULT_COMPUTE_TYPE)
 
 
 @app.route("/transcribe-bytes", methods=["POST"])
@@ -60,11 +71,11 @@ def transcribe_bytes():
 
     schema = TranscribeSchema()
 
-    validated_data = None
+    validated_data: TranscribeData = None
     try:
-        validated_data = schema.load(request_data)
+        loaded_data = schema.load(request_data)
 
-        print(f"\033[92mvalidated data: {validated_data}\033[0m]")
+        validated_data = get_default_transcribe_config(loaded_data)
     except ValidationError as err:
         return jsonify({"errors": err.messages})
     
@@ -75,8 +86,13 @@ def transcribe_bytes():
         task = transcribe_audio.delay(audio_bytes)
 
         return jsonify({
-            "task_id": task.id,
-            "status": task.status
+            "task": {
+                "task_id": task.id,
+                "status": task.status,
+            },
+            "model": validated_data.get("model"),
+            "model_size": validated_data.get("model_size"),
+            "language": validated_data.get("language"),
         })
     else:
         return jsonify({"error": "Invalid request data"}), 400

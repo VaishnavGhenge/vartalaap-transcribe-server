@@ -34,6 +34,7 @@ def transcribe_audio(audio_bytes):
 
 
 class TranscribeSchema(Schema):
+    # TODO: explore how default works here
     model = fields.String(validate=validate.OneOf(["whisper", "faster-whisper"]), default="whisper")
     model_size = fields.String(validate=validate.OneOf(["tiny", "base", "small"]), default="tiny")
     language = fields.String(validate=validate.OneOf(LANGUAGE_CODES), default="en")

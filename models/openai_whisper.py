@@ -1,5 +1,3 @@
-import torch
-import whisper
 import numpy as np
 from typing import Dict, Optional, Union
 from whisper import Whisper
@@ -14,11 +12,7 @@ class WhisperModel:
         self.beam: int = beam
         self.task: str = task
 
-        self.model: Whisper = whisper.load_model(
-            self.model_size,
-            beam=self.beam,
-            task=self.task,
-        )
+        self.model: Whisper = whisper.load_model()
 
     def get_transcribed_text(
             self,

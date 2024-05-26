@@ -14,7 +14,7 @@ class WhisperModel:
         self.beam: int = beam
         self.task: str = task
 
-        self.model: Whisper = whisper.load_model()
+        self.model: Whisper = whisper.load_model(self.model_size)
 
     def get_transcribed_text(
             self,

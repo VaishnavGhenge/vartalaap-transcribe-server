@@ -120,7 +120,7 @@ class TranscribeData(TypedDict):
 
 
 def get_default_transcribe_config(validated_data) -> TranscribeData:
-    default_data = {}
+    default_data = validated_data
 
     if "model" not in validated_data:
         default_data["model"] = DEFAULT_MODEL
@@ -136,7 +136,5 @@ def get_default_transcribe_config(validated_data) -> TranscribeData:
 
     if "compute_type" not in validated_data:
         default_data["compute_type"] = DEFAULT_COMPUTE_TYPE
-
-    print(f"\03[92m{default_data}\033[0m")
 
     return default_data

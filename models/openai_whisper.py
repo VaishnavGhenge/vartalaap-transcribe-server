@@ -1,4 +1,5 @@
 import torch
+import whisper
 import numpy as np
 from typing import Dict, Optional, Union
 from whisper import Whisper

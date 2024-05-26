@@ -16,7 +16,6 @@ class WhisperModel:
 
         self.model: Whisper = whisper.load_model(
             self.model_size,
-            language=self.language,
             beam=self.beam,
             task=self.task,
         )

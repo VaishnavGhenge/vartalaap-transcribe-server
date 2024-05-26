@@ -19,7 +19,7 @@ class WhisperModel:
     def get_transcribed_text(
             self,
             audio_data: Union[str, np.ndarray, torch.Tensor],
-            no_speech_threshold: Optional[float] = 0.5
+            no_speech_threshold: Optional[float] = 0.7
     ) -> str:
         """
             Transcribes audio using Whisper model.

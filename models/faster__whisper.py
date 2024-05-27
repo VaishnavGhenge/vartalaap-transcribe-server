@@ -1,6 +1,7 @@
 from typing import Union, BinaryIO
 
 import logging
+import time
 import numpy as np
 from faster_whisper import WhisperModel
 

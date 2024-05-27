@@ -21,7 +21,7 @@ class FasterWhisper:
 
     lru_cache(maxsize=1)
 
-    def get_cached_model(self, model_size=model_size, device=device, compute_type=compute_type, **kwargs):
+    def get_cached_model(self, model_size=None, device=None, compute_type=None, **kwargs):
         return self.load_model(model_size=model_size, device=device, compute_type=compute_type, **kwargs)
 
     def load_model(self, model_size=None, device=None, compute_type=None, **kwargs):

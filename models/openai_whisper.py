@@ -3,6 +3,7 @@ import whisper
 import numpy as np
 from typing import Dict, Optional, Union
 from whisper import Whisper
+from functools import lru_cache
 
 from utils import TranscribeData
 
@@ -14,7 +15,11 @@ class WhisperModel:
         self.beam: int = beam
         self.task: str = task
 
-        self.model: Whisper = whisper.load_model(self.model_size)
+        self.model: Whisper = self.get_cached_model(self.model_size)
+
+    @lru_cache(maxsize=1)
+    def get_cached_model(self, model_size) -> Whisper:
+        return whisper.load_model(self.model_size)
 
     def get_transcribed_text(
             self,

@@ -46,8 +46,9 @@ def whisper_transcribe(audio: Union[str, np.ndarray, torch.Tensor], config: Tran
 
 
 def faster_whisper_transcribe(audio: Union[str, np.ndarray, torch.Tensor], config: TranscribeData) -> str:
-    print(f"\033[92mStart loading faster whisper model\033[0m", time.time())
+    print(f"\033[92mStart loading faster whisper model\033[0m")
+    start_time = time.time()
     faster_whisper = FasterWhisper(model_size=config["model_size"], language=config["language"], device=config["device"], compute_type=config["compute_type"])
-    print(f"\033[92mEnd loading faster whisper model\033[0m", time.time())
+    print(f"\033[92mEnd loading faster whisper model\033[0m + Total time: ", time.time() - start_time)
 
     return faster_whisper.get_transcribed_text(audio)

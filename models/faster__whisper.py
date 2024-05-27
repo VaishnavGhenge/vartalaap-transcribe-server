@@ -3,6 +3,7 @@ from typing import Union, BinaryIO
 import logging
 import time
 import numpy as np
+from functools import lru_cache
 from faster_whisper import WhisperModel
 
 from utils import TranscribeData
@@ -16,15 +17,20 @@ class FasterWhisper:
             self.language = language
 
         self.beam_size = beam_size
-        self.model = self.load_model(model_size=model_size, device=device, compute_type=compute_type, **kwargs)
+        self.model = self.get_cached_model(model_size=model_size, device=device, compute_type=compute_type, **kwargs)
+
+    lru_cache(maxsize=1)
+
+    def get_cached_model(self, model_size=model_size, device=device, compute_type=compute_type, **kwargs):
+        return self.load_model(model_size=model_size, device=device, compute_type=compute_type, **kwargs)
 
     def load_model(self, model_size=None, device=None, compute_type=None, **kwargs):
         if model_size is None:
             raise ValueError("Model size must be provided")
-        
+
         if device is None:
             raise ValueError("Device must be provided")
-        
+
         if compute_type is None:
             raise ValueError("Compute type must be provided")
 

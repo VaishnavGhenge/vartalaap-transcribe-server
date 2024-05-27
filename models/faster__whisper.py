@@ -33,7 +33,9 @@ class FasterWhisper:
         return WhisperModel(model_size, device=device, compute_type=compute_type, **kwargs)
 
     def get_transcribed_text(self, audio: Union[str, BinaryIO, np.ndarray], init_prompt: str = "", **kwargs) -> str:
+        print(f"\033[92mTranscribe using faster whisper model\033[0m", time.time())
         segments, _ = self.model.transcribe(audio, language=self.language, initial_prompt=init_prompt, **kwargs)
+        print(f"\033[92mEnd Transcribing faster whisper model\033[0m", time.time())
 
         logging.warning(segments)
 
